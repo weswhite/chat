@@ -12,26 +12,24 @@ class App extends Component {
   }
 
   handleChange(event) {
-    this.setState({msg: event.target.value});
+    this.setState({msg: event.target.value})
   }
 
-  handleSubmit(event) {
-    alert('A name was submitted: ' + this.state.msg);
-    event.preventDefault();
+  handleSubmit(e) {
+    e.preventDefault();
+    this.socket.send(this.state.msg)
+  }
+
+  onSocketOpen(){
+    console.log('Connected')
   }
 
   componentDidMount(){
     const uri = 'ws://' + 'localhost:3030' + '/chat';
-    var ws = new WebSocket(uri)
+    this.socket = new WebSocket(uri)
 
-    var msg = {
-      type: "message",
-      text: "test",
-      id:   1,
-      date: Date.now()
-    };
-    //ws.onopen( event => ws.send(msg))
-
+    this.socket.onopen = () => this.onSocketOpen()
+    this.socket.onmessage = (msg) => this.onSocketData(msg)
   }
 
   render() {
