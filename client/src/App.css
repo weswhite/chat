@@ -3,7 +3,6 @@ body > #root  {
 }
 
 .App {
-  text-align: center;
   width: 50%;
   height: 400px;
   padding: 10px 0;
@@ -18,12 +17,16 @@ body > #root  {
   width: calc(100% - 20px);
   background-color: white;
   border: solid 1px black;
+  overflow-y: scroll;
 }
 
 input[type="text"] {
   width: calc(100% - 70px);
   padding-right: 50px;
   height: 16px;
+  margin: 0 0 0 10px;
+  font-size: 18px;
+  height: 25px;
 }
 
 button[type="submit"] {
@@ -37,3 +40,17 @@ button[type="submit"] {
 }
 
 button[type="submit"]:hover { transform: scale(1.1); }
+
+ul {
+  list-style-type: none;
+}
+
+li {
+  color: white;
+  background-color: #58c132;
+  margin: 5px;
+  float: left;
+  clear: both;
+  padding: 8px 20px;
+  border-radius: 8px;
+}

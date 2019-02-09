@@ -31,7 +31,6 @@ class App extends Component {
     this.setState((state) => {
       return {messages: [...state.messages, msg]};
     })
-    console.log(this.state.messages)
   }
 
   componentDidMount(){
@@ -52,7 +51,7 @@ class App extends Component {
     return (
       <div className="App">
           <div className="msg-box">
-            {msgs}
+            <ul>{msgs}</ul>
           </div>
           <form onSubmit={this.handleSubmit}>
             <input type="text" value={this.state.msg} onChange={this.handleChange}/>

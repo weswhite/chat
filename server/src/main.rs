@@ -78,7 +78,9 @@ fn user_message(my_id: usize, msg: Message, users: &Users) {
         return;
     };
 
-    let new_msg = format!("<User#{}>: {}", my_id, msg);
+    //create the message
+    //TODO: Make this into an object and not just a string
+    let new_msg = format!("User#{}: {}", my_id, msg);
     eprintln!("new msg: {}", new_msg);
     // New message from this user, send it to everyone else (except same uid)...
     //
