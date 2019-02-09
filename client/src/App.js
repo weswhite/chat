@@ -5,7 +5,10 @@ import './App.css';
 class App extends Component {
   constructor(){
     super()
-    this.state = {msg: ''};
+    this.state = {
+      msg: '',
+      messages: []
+    };
 
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -24,18 +27,32 @@ class App extends Component {
     console.log('Connected')
   }
 
+  onMessageReceived(msg){
+    this.setState((state) => {
+      return {messages: [...state.messages, msg]};
+    })
+    console.log(this.state.messages)
+  }
+
   componentDidMount(){
     const uri = 'ws://' + 'localhost:3030' + '/chat';
     this.socket = new WebSocket(uri)
 
     this.socket.onopen = () => this.onSocketOpen()
-    this.socket.onmessage = (msg) => this.onSocketData(msg)
+    this.socket.onmessage = (msg) => this.onMessageReceived(msg)
   }
 
   render() {
+    const msgs = this.state.messages.map((m, i) => 
+      (
+          <li key={i} >
+              {m.data}
+          </li>
+      ))
     return (
       <div className="App">
           <div className="msg-box">
+            {msgs}
           </div>
           <form onSubmit={this.handleSubmit}>
             <input type="text" value={this.state.msg} onChange={this.handleChange}/>
