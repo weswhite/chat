@@ -10,8 +10,8 @@ class App extends Component {
       messages: []
     };
 
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleChange = this.handleChange.bind(this)
+    this.handleSubmit = this.handleSubmit.bind(this)
   }
 
   handleChange(event) {
@@ -20,8 +20,14 @@ class App extends Component {
 
   handleSubmit(e) {
     e.preventDefault();
-    this.socket.send(this.state.msg)
-    this.setState({ msg: '' });
+    const message = "Me: " + this.state.msg
+    this.socket.send(message)
+    this.setState((state) => {
+      return {
+        messages: [...state.messages, message],
+        msg: ''
+      }
+    })
   }
 
   onSocketOpen(){
@@ -30,7 +36,7 @@ class App extends Component {
 
   onMessageReceived(msg){
     this.setState((state) => {
-      return {messages: [...state.messages, msg]};
+      return {messages: [...state.messages, msg.data]}
     })
   }
 
@@ -46,7 +52,7 @@ class App extends Component {
     const msgs = this.state.messages.map((m, i) => 
       (
           <li key={i} >
-              {m.data}
+              {m}
           </li>
       ))
     return (
@@ -59,7 +65,7 @@ class App extends Component {
             <button type="submit">SEND</button>
           </form>
       </div>
-    );
+    )
   }
 }
 
