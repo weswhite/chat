@@ -21,6 +21,7 @@ class App extends Component {
   handleSubmit(e) {
     e.preventDefault();
     this.socket.send(this.state.msg)
+    this.setState({ msg: '' });
   }
 
   onSocketOpen(){
