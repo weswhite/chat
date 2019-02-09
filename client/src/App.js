@@ -21,7 +21,7 @@ class App extends Component {
   handleSubmit(e) {
     e.preventDefault();
     const message = "Me: " + this.state.msg
-    this.socket.send(message)
+    this.socket.send(this.state.msg)
     this.setState((state) => {
       return {
         messages: [...state.messages, message],
