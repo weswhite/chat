@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
 
 class App extends Component {
@@ -20,7 +19,7 @@ class App extends Component {
 
   handleSubmit(e) {
     e.preventDefault();
-    const message = "Me: " + this.state.msg
+    const message = {text: "Me: " + this.state.msg, sender: 'client'}
     this.socket.send(this.state.msg)
     this.setState((state) => {
       return {
@@ -36,12 +35,12 @@ class App extends Component {
 
   onMessageReceived(msg){
     this.setState((state) => {
-      return {messages: [...state.messages, msg.data]}
+      return {messages: [...state.messages, {text: msg.data, sender: 'server'}]}
     })
   }
 
   componentDidMount(){
-    const uri = 'ws://' + 'localhost:3030' + '/chat';
+    const uri = 'ws://localhost:3030/chat';
     this.socket = new WebSocket(uri)
 
     this.socket.onopen = () => this.onSocketOpen()
@@ -51,14 +50,14 @@ class App extends Component {
   render() {
     const msgs = this.state.messages.map((m, i) => 
       (
-          <li key={i} >
-              {m}
+          <li className={(m.sender === 'client') ? 'client-msg' : 'server-msg'}  key={i} >
+              {m.text}
           </li>
       ))
     return (
       <div className="App">
           <div className="msg-box">
-            <ul>{msgs}</ul>
+            <ul >{msgs}</ul>
           </div>
           <form onSubmit={this.handleSubmit}>
             <input type="text" value={this.state.msg} onChange={this.handleChange}/>
