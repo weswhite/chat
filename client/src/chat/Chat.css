@@ -1,0 +1,52 @@
+.Chat {
+    width: 50%;
+    height: 400px;
+    padding: 10px 0;
+    margin: 50px auto 0 auto;
+    background-color: lightgray;
+    border: solid 1px black;
+}
+  
+.msg-box {
+    margin: 10px;
+    height: 350px;
+    width: calc(100% - 20px);
+    background-color: white;
+    border: solid 1px black;
+    overflow-y: scroll;
+}
+  
+input[type="text"].send-chat-input {
+    width: calc(100% - 70px);
+    padding-right: 50px;
+    height: 16px;
+    margin: 0 0 0 10px;
+}
+  
+button[type="submit"].send-chat-button {
+    margin-left: -50px;
+    width: 40px;
+}
+  
+ul {
+    list-style-type: none;
+}
+  
+li {
+    color: white;
+    margin: 5px;
+    clear: both;
+    padding: 8px 20px;
+    border-radius: 8px;
+}
+  
+.server-msg {
+    float: left;
+    background-color: #18b303;
+}
+  
+.client-msg {
+    float: right;
+    background-color: #4732c1;
+}
+  

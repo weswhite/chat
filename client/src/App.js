@@ -1,53 +1,40 @@
-import React, { useState, useEffect, useRef } from 'react';
-import './App.css';
+import React, { useState, useRef } from 'react'
+import NotificationSystem from 'react-notification-system'
 
-const uri = 'ws://localhost:3030/chat';
-const socket =  new WebSocket(uri)
+import './App.css'
+import Chat from './chat/Chat'
 
 function App() {
-  const [msg, setMsg] = useState('');
-  const [messages, setMessages] = useState([]);
-  const msgBox = useRef();
+  const [display, setDisplay] = useState()
+  const ns = useRef()
 
   const handleChange = (e) => {
-    setMsg(e.target.value)
+    setDisplay(e.target.value)
+
   }
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    socket.send(msg)
-    const message = {text: "Me: " + msg, sender: 'client'}
-    setMsg('')
-    setMessages((state) => [...state, message])
-    msgBox.current.scrollTop = msgBox.current.scrollHeight
+    e.preventDefault()
+    if(display !== undefined){
+      window.location.assign("/chat");
+    } else {
+      const notification = ns.current;
+      notification.addNotification({
+      message: 'Please enter a display name',
+      level: 'error',
+      position: "bc"
+    });
+    }
+    
   }
-
-  const onMessageReceived = (msg) => {
-    const message = {text: msg, sender: 'server'}
-    setMessages((state) => [...state, message])
-    msgBox.current.scrollTop = msgBox.current.scrollHeight
-  }
-
-  useEffect(() => {
-    socket.onopen = () => this.onSocketOpen()
-    socket.onmessage = (msg) => onMessageReceived(msg.data)
-  }, []);
-
   return (
     <div className="App">
-        <div ref={msgBox} className="msg-box">
-          <ul >
-            {messages.map((m, i) => (
-              <li className={(m.sender === 'client') ? 'client-msg' : 'server-msg'}  key={i} >
-                  {m.text}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <form onSubmit={handleSubmit}>
-          <input type="text" value={msg} onChange={handleChange}/>
-          <button type="submit">SEND</button>
-        </form>
+      <h1>Rust Chat</h1>
+      <form onSubmit={handleSubmit}>
+        <input placeholder="enter display name" type="text" value={display} onChange={handleChange}/>
+        <NotificationSystem ref={ns} />
+        <button type="submit">CREATE SERVER</button>
+      </form>
     </div>
   )
 }
