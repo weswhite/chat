@@ -9,12 +9,22 @@ use futures::{Future, Stream};
 use warp::ws::{Message, WebSocket};
 use warp::Filter;
 
+use serde::{Deserialize, Serialize};
+use serde_json::Result;
+
+#[derive(Serialize, Deserialize)]
+struct ChatMessage {
+    text: String,
+    name: String,
+    id: String,
+    server: String
+}
+
+
 static NEXT_USER_ID: AtomicUsize = AtomicUsize::new(1);
 type Users = Arc<Mutex<HashMap<usize, mpsc::UnboundedSender<Message>>>>;
 
 fn main() {
-    pretty_env_logger::init();
-
     // Keep track of all connected users, key is usize, value
     // is a websocket sender.
     let users = Arc::new(Mutex::new(HashMap::new()));
@@ -29,7 +39,12 @@ fn main() {
             ws.on_upgrade(move |socket| user_connected(socket, users))
         });
 
+    //create socket id and return it
+    //let index = warp::path::end().map(|| warp::reply::html(INDEX_HTML));
+
+    //let routes = index.or(chat);
     let routes = chat;
+    
 
     warp::serve(routes).run(([127, 0, 0, 1], 3030));
 }
@@ -55,7 +70,7 @@ fn user_connected(ws: WebSocket, users: Users) -> impl Future<Item = (), Error =
 
     // Make an extra clone to give to our disconnection handler...
     let users2 = users.clone();
-
+    //for each rx
     user_ws_rx
         .for_each(move |msg| {
             user_message(my_id, msg, &users);
@@ -72,6 +87,8 @@ fn user_connected(ws: WebSocket, users: Users) -> impl Future<Item = (), Error =
 
 fn user_message(my_id: usize, msg: Message, users: &Users) {
     // Skip any non-Text messages...
+    println!("message for rx foreach: {:?}", msg);
+    //here i am assuming the msg is just a string
     let msg = if let Ok(s) = msg.to_str() {
         s
     } else {
