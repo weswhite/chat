@@ -1,13 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
-import './Chat.css';
+import React, { useState, useEffect, useRef, useContext } from 'react'
 
-const uri = 'ws://localhost:3030/chat';
+import { ServerContext } from '../../context/server-context'
+import './Chat.css'
+
+const uri = 'ws://localhost:3030/chat'
 const socket =  new WebSocket(uri)
 
 function Chat() {
-  const [msg, setMsg] = useState('');
-  const [messages, setMessages] = useState([]);
-  const msgBox = useRef();
+  const [msg, setMsg] = useState('')
+  const [messages, setMessages] = useState([])
+  const server = useContext(ServerContext)
+  const msgBox = useRef()
 
   const handleChange = (e) => {
     setMsg(e.target.value)
@@ -15,7 +18,7 @@ function Chat() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    socket.send(msg)
+    socket.send(JSON.stringify({text: msg, room: 1}))
     const message = {text: "Me: " + msg, sender: 'client'}
     setMsg('')
     setMessages((state) => [...state, message])
@@ -29,7 +32,6 @@ function Chat() {
   }
 
   useEffect(() => {
-    socket.onopen = () => this.onSocketOpen()
     socket.onmessage = (msg) => onMessageReceived(msg.data)
   }, []);
 
