@@ -18,7 +18,14 @@ function Chat() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    socket.send(JSON.stringify({text: msg, room: 1}))
+    socket.send(JSON.stringify(
+      {
+        text: msg,
+        server: server.server,
+        name: server.name,
+        id: null //i have not figured this part out yet
+      }
+    ))
     const message = {text: "Me: " + msg, sender: 'client'}
     setMsg('')
     setMessages((state) => [...state, message])
