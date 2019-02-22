@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useRef, useContext } from 'react'
 
-import { ServerContext } from '../../context/server-context'
 import './Chat.css'
+import { NameContext, ServerContext } from '../App';
 
 const uri = 'ws://localhost:3030/chat'
 const socket =  new WebSocket(uri)
 
 function Chat() {
+  const [name, setName] = useContext(NameContext)
+  const [server, setServer] = useContext(ServerContext)
   const [msg, setMsg] = useState('')
   const [messages, setMessages] = useState([])
-  const server = useContext(ServerContext)
   const msgBox = useRef()
 
   const handleChange = (e) => {
@@ -42,6 +43,8 @@ function Chat() {
     socket.onmessage = (msg) => onMessageReceived(msg.data)
   }, []);
 
+  useEffect(() => console.log(server))
+
   return (
     <div className="Chat">
         <div ref={msgBox} className="msg-box">
@@ -57,6 +60,7 @@ function Chat() {
           <input className="send-chat-input" type="text" value={msg} onChange={handleChange}/>
           <button className="send-chat-button" type="submit">SEND</button>
         </form>
+        <div>Server Name: {server}, display name: {name}</div>
     </div>
   )
 }

@@ -1,27 +1,27 @@
 import React, { useState, useRef, useContext } from 'react'
-import axios from 'axios'
+import { Redirect } from 'react-router-dom'
 import NotificationSystem from 'react-notification-system'
 
 import ServerBrowser from '../server-browser/ServerBrowser'
-import { ServerContext } from '../../context/server-context';
+import { NameContext, ServerContext } from '../App';
 
 function Server() {
+  const [name, setName] = useContext(NameContext)
+  const [server, setServer] = useContext(ServerContext)
   const [servers, setServers] = useState([])
-  const server = useContext(ServerContext)
+  
   const ns = useRef()
 
   const handleChange = (e) => {
-    server.updateName(e.target.value)
+    setName(e.target.value)
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if(server.name !== undefined){
-      //create a new server string
-      //base this for now on the index of servers 
-      //this will have to be a websocket updated list over open servers
-      server.updateServer(100)
-      window.location.assign("/chat");
+    if(server !== undefined){
+      setServer(100)
+      console.log('setServer called')
+      return <Redirect to='/chat' />
     } else {
       const notification = ns.current;
       notification.addNotification({
@@ -36,7 +36,7 @@ function Server() {
     <div className="App">
       <h1>Rust Chat</h1>
       <form onSubmit={handleSubmit}>
-        <input placeholder="enter display name" type="text" value={server.name} onChange={handleChange}/>
+        <input placeholder="enter display name" type="text" value={name} onChange={handleChange}/>
         <NotificationSystem ref={ns} />
         <button type="submit">CREATE SERVER</button>
       </form>

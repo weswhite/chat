@@ -1,22 +1,25 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, createContext } from 'react'
 import { Route, Switch } from 'react-router-dom'
 
-import { ServerContext } from '../context/server-context'
 import './App.css'
 import Server from './server/Server'
 import Chat from './chat/Chat'
 
+export const ServerContext = createContext(['', () => {}])
+export const NameContext = createContext(['', () => {}])
+
 function App() {
   const [server, setServer] = useState('')
+  useEffect(() => console.log('server: ',server), [server])
+
   const [name, setName] = useState('')
-  const updateServer = (server) => setServer(server)
-  const updateName = (name) => setName(name)
+  
   return (
-    <ServerContext.Provider value={{server: server, name: name, updateServer: updateServer, updateName: updateName}}>
-      <Switch>
+    <ServerContext.Provider value={[server, setServer]}>
+      <NameContext.Provider value={[name, setName]}>
         <Route exact path="/" component={Server}/>
         <Route path="/chat" component={Chat} />
-      </Switch>
+      </NameContext.Provider>
     </ServerContext.Provider>
   )
 }

@@ -19,7 +19,7 @@
 input[type="text"].send-chat-input {
     width: calc(100% - 70px);
     padding-right: 50px;
-    height: 16px;
+    height: 22px;
     margin: 0 0 0 10px;
 }
   
