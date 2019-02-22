@@ -1,11 +1,13 @@
 import React, { useState, useRef, useContext } from 'react'
 import { Redirect } from 'react-router-dom'
 import NotificationSystem from 'react-notification-system'
+import useReactRouter from 'use-react-router'
 
 import ServerBrowser from '../server-browser/ServerBrowser'
-import { NameContext, ServerContext } from '../App';
+import { NameContext, ServerContext } from '../App'
 
 function Server() {
+  const { history, location, match } = useReactRouter()
   const [name, setName] = useContext(NameContext)
   const [server, setServer] = useContext(ServerContext)
   const [servers, setServers] = useState([])
@@ -21,7 +23,7 @@ function Server() {
     if(server !== undefined){
       setServer(100)
       console.log('setServer called')
-      return <Redirect to='/chat' />
+      history.push('/chat')
     } else {
       const notification = ns.current;
       notification.addNotification({
