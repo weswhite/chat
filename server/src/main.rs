@@ -12,14 +12,20 @@ use warp::Filter;
 use serde::{Deserialize, Serialize};
 use serde_json::Result;
 
+
+
+#[derive(Serialize, Deserialize)]
+struct Server {
+    id: String
+}
+
 #[derive(Serialize, Deserialize)]
 struct ChatMessage {
     text: String,
     name: String,
     id: String,
-    server: String
+    server: Server
 }
-
 
 static NEXT_USER_ID: AtomicUsize = AtomicUsize::new(1);
 type Users = Arc<Mutex<HashMap<usize, mpsc::UnboundedSender<Message>>>>;
@@ -30,6 +36,43 @@ fn main() {
     let users = Arc::new(Mutex::new(HashMap::new()));
     // Turn our "state" into a new Filter...
     let users = warp::any().map(move || users.clone());
+
+    let db = Arc::new(Mutex::new(Vec::<Server>::new()));
+    let db = warp::any().map(move || db.clone());
+
+    // Just the path segment "todos"...
+    let servers = warp::path("servers");
+
+    // Combined with `end`, this means nothing comes after "todos".
+    // So, for example: `GET /todos`, but not `GET /todos/32`.
+    let servers_index = servers.and(warp::path::end());
+
+    // Combined with an id path parameter, for refering to a specific Server.
+    // For example, `POST /servers/32`, but not `POST /servers/32/something-more`.
+    let servers_id = servers.and(warp::path::param::<u64>()).and(warp::path::end());
+
+    // When accepting a body, we want a JSON body
+    // (and to reject huge payloads)...
+    let json_body = warp::body::content_length_limit(1024 * 16).and(warp::body::json());
+
+    // Next, we'll define each our endpoints:
+
+    //i need to make an endpoint  to create servers and return an id
+    //i guess that i could save them off into a db?
+    //post server should return ID????
+
+    // // `GET /servers`
+    let list = warp::get2()
+        .and(servers_index)
+        .and(db.clone())
+        .map(list_servers);
+
+    // // `POST /server`
+    let create = warp::post2()
+        .and(server_index)
+        .and(json_body)
+        .and(db.clone())
+        .and_then(create_server);
 
     // GET /chat 
     let chat = warp::path("chat")
@@ -42,7 +85,7 @@ fn main() {
     //create socket id and return it
     //let index = warp::path::end().map(|| warp::reply::html(INDEX_HTML));
 
-    //let routes = index.or(chat);
+    let routes = list.or(create).or(chat);
     let routes = chat;
     
 

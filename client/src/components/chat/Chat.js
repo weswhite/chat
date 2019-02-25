@@ -43,8 +43,6 @@ function Chat() {
     socket.onmessage = (msg) => onMessageReceived(msg.data)
   }, []);
 
-  useEffect(() => console.log(server))
-
   return (
     <div className="Chat">
         <div ref={msgBox} className="msg-box">
@@ -60,7 +58,6 @@ function Chat() {
           <input className="send-chat-input" type="text" value={msg} onChange={handleChange}/>
           <button className="send-chat-button" type="submit">SEND</button>
         </form>
-        <div>Server Name: {server}, display name: {name}</div>
     </div>
   )
 }

@@ -21,9 +21,10 @@ function Server() {
   const handleSubmit = (e) => {
     e.preventDefault()
     if(server !== undefined){
+      //create a server id here
+      //get it back and set it here
       setServer(100)
-      console.log('setServer called')
-      history.push('/chat')
+      history.push('./chat')
     } else {
       const notification = ns.current;
       notification.addNotification({
