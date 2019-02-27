@@ -1,3 +1,10 @@
+#[macro_use]
+extern crate log;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
+extern crate warp;
+
 use std::collections::HashMap;
 use std::sync::{
     atomic::{AtomicUsize, Ordering},
@@ -7,24 +14,23 @@ use std::sync::{
 use futures::sync::mpsc;
 use futures::{Future, Stream};
 use warp::ws::{Message, WebSocket};
-use warp::Filter;
 
-use serde::{Deserialize, Serialize};
 use serde_json::Result;
+use warp::{http::StatusCode, Filter};
 
+type Db = Arc<Mutex<Vec<Server>>>;
 
-
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct Server {
     id: String
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct ChatMessage {
     text: String,
     name: String,
     id: String,
-    server: Server
+    server: String
 }
 
 static NEXT_USER_ID: AtomicUsize = AtomicUsize::new(1);
@@ -69,7 +75,7 @@ fn main() {
 
     // // `POST /server`
     let create = warp::post2()
-        .and(server_index)
+        .and(servers_index)
         .and(json_body)
         .and(db.clone())
         .and_then(create_server);
@@ -85,9 +91,9 @@ fn main() {
     //create socket id and return it
     //let index = warp::path::end().map(|| warp::reply::html(INDEX_HTML));
 
-    let routes = list.or(create).or(chat);
-    let routes = chat;
-    
+    let api = list.or(create).or(chat);
+    //let routes = chat;
+    let routes = api.with(warp::log("servers"));
 
     warp::serve(routes).run(([127, 0, 0, 1], 3030));
 }
@@ -163,4 +169,35 @@ fn user_disconnected(my_id: usize, users: &Users) {
 
     // Stream closed up, so remove from the user list
     users.lock().unwrap().remove(&my_id);
+}
+
+// These are our API handlers, the ends of each filter chain.
+// Notice how thanks to using `Filter::and`, we can define a function
+// with the exact arguments we'd expect from each filter in the chain.
+// No tuples are needed, it's auto flattened for the functions.
+
+/// GET /todos
+fn list_servers(db: Db) -> impl warp::Reply {
+    // Just return a JSON array of all Todos.
+    warp::reply::json(&*db.lock().unwrap())
+}
+
+/// POST /todos with JSON body
+fn create_server(create: Server, db: Db) -> Result<impl warp::Reply, warp::Rejection> {
+    debug!("create_server: {:?}", create);
+
+    let mut vec = db.lock().unwrap();
+
+    for server in vec.iter() {
+        if server.id == create.id {
+            debug!("    -> id already exists: {}", create.id);
+            // Todo with id already exists, return `400 BadRequest`.
+            return Ok(StatusCode::BAD_REQUEST);
+        }
+    }
+
+    // No existing Todo with id, so insert and return `201 Created`.
+    vec.push(create);
+
+    Ok(StatusCode::CREATED)
 }
