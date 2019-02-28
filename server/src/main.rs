@@ -15,7 +15,6 @@ use futures::sync::mpsc;
 use futures::{Future, Stream};
 use warp::ws::{Message, WebSocket};
 
-use serde_json::Result;
 use warp::{http::StatusCode, Filter};
 
 type Db = Arc<Mutex<Vec<Server>>>;
@@ -55,7 +54,7 @@ fn main() {
 
     // Combined with an id path parameter, for refering to a specific Server.
     // For example, `POST /servers/32`, but not `POST /servers/32/something-more`.
-    let servers_id = servers.and(warp::path::param::<u64>()).and(warp::path::end());
+    //let servers_id = servers.and(warp::path::param::<u64>()).and(warp::path::end());
 
     // When accepting a body, we want a JSON body
     // (and to reject huge payloads)...
