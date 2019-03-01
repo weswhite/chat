@@ -4,6 +4,9 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate warp;
+extern crate rand;
+
+use rand::Rng;
 
 use std::collections::HashMap;
 use std::sync::{
@@ -21,7 +24,8 @@ type Db = Arc<Mutex<Vec<Server>>>;
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Server {
-    id: String
+    id: String,
+    name: String
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -36,50 +40,27 @@ static NEXT_USER_ID: AtomicUsize = AtomicUsize::new(1);
 type Users = Arc<Mutex<HashMap<usize, mpsc::UnboundedSender<Message>>>>;
 
 fn main() {
-    // Keep track of all connected users, key is usize, value
-    // is a websocket sender.
     let users = Arc::new(Mutex::new(HashMap::new()));
-    // Turn our "state" into a new Filter...
     let users = warp::any().map(move || users.clone());
 
     let db = Arc::new(Mutex::new(Vec::<Server>::new()));
     let db = warp::any().map(move || db.clone());
 
-    // Just the path segment "todos"...
     let servers = warp::path("servers");
-
-    // Combined with `end`, this means nothing comes after "todos".
-    // So, for example: `GET /todos`, but not `GET /todos/32`.
     let servers_index = servers.and(warp::path::end());
-
-    // Combined with an id path parameter, for refering to a specific Server.
-    // For example, `POST /servers/32`, but not `POST /servers/32/something-more`.
-    //let servers_id = servers.and(warp::path::param::<u64>()).and(warp::path::end());
-
-    // When accepting a body, we want a JSON body
-    // (and to reject huge payloads)...
     let json_body = warp::body::content_length_limit(1024 * 16).and(warp::body::json());
 
-    // Next, we'll define each our endpoints:
-
-    //i need to make an endpoint  to create servers and return an id
-    //i guess that i could save them off into a db?
-    //post server should return ID????
-
-    // // `GET /servers`
     let list = warp::get2()
         .and(servers_index)
         .and(db.clone())
         .map(list_servers);
 
-    // // `POST /server`
     let create = warp::post2()
         .and(servers_index)
         .and(json_body)
         .and(db.clone())
         .and_then(create_server);
 
-    // GET /chat 
     let chat = warp::path("chat")
         .and(warp::ws2())
         .and(users)
@@ -87,11 +68,7 @@ fn main() {
             ws.on_upgrade(move |socket| user_connected(socket, users))
         });
 
-    //create socket id and return it
-    //let index = warp::path::end().map(|| warp::reply::html(INDEX_HTML));
-
     let api = list.or(create).or(chat);
-    //let routes = chat;
     let routes = api.with(warp::log("servers"));
 
     warp::serve(routes).run(([127, 0, 0, 1], 3030));
@@ -170,33 +147,27 @@ fn user_disconnected(my_id: usize, users: &Users) {
     users.lock().unwrap().remove(&my_id);
 }
 
-// These are our API handlers, the ends of each filter chain.
-// Notice how thanks to using `Filter::and`, we can define a function
-// with the exact arguments we'd expect from each filter in the chain.
-// No tuples are needed, it's auto flattened for the functions.
-
-/// GET /todos
 fn list_servers(db: Db) -> impl warp::Reply {
-    // Just return a JSON array of all Todos.
     warp::reply::json(&*db.lock().unwrap())
 }
 
-/// POST /todos with JSON body
-fn create_server(create: Server, db: Db) -> Result<impl warp::Reply, warp::Rejection> {
+fn create_server(mut create: Server, db: Db) -> Result<impl warp::Reply, warp::Rejection> {
     debug!("create_server: {:?}", create);
+
+    if create.id == "0" {
+        let mut rng = rand::thread_rng();
+        create.id = rng.gen::<u32>().to_string();
+    }
 
     let mut vec = db.lock().unwrap();
 
     for server in vec.iter() {
         if server.id == create.id {
             debug!("    -> id already exists: {}", create.id);
-            // Todo with id already exists, return `400 BadRequest`.
             return Ok(StatusCode::BAD_REQUEST);
         }
     }
 
-    // No existing Todo with id, so insert and return `201 Created`.
     vec.push(create);
-
     Ok(StatusCode::CREATED)
 }
