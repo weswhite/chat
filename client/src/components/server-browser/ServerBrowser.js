@@ -1,8 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 
-function ServerBrowser() {
+function ServerBrowser(props) {
+    let [servers, setServers] = useState(props.servers)
     return (
-        <ul></ul>
+        <ul className="servers-list">
+            {servers.map(server => (
+                <li className="server-item" key={server.id}>
+                    {server}
+                </li>
+            ))}
+        </ul>
     )
 }
 

@@ -23,8 +23,8 @@ function Chat() {
       {
         text: msg,
         server: server.server,
-        name: server.name,
-        id: null //i have not figured this part out yet
+        name: name.name,
+        id: server.id 
       }
     ))
     const message = {text: "Me: " + msg, sender: 'client'}

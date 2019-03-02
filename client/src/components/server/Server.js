@@ -1,7 +1,8 @@
-import React, { useState, useRef, useContext } from 'react'
+import React, { useState, useRef, useContext, useEffect } from 'react'
 import { Redirect } from 'react-router-dom'
 import NotificationSystem from 'react-notification-system'
 import useReactRouter from 'use-react-router'
+import axios from 'axios'
 
 import ServerBrowser from '../server-browser/ServerBrowser'
 import { NameContext, ServerContext } from '../App'
@@ -14,17 +15,38 @@ function Server() {
   
   const ns = useRef()
 
-  const handleChange = (e) => {
+  const handleNameChange = (e) => {
     setName(e.target.value)
   }
 
+  const handleServerChange = (e) => {
+    setServer({name: e.target.value, id: 0})
+  }
+
+  useEffect(() => {
+    axios.get('localhost:3030/servers', {})
+      .then(function (response) {
+        //show a loading indicator here
+        console.log(response);
+        setServer(response)
+      })
+      .catch(error => console.log(error))
+  }, []);
+
   const handleSubmit = (e) => {
     e.preventDefault()
-    if(server !== undefined){
-      //create a server id here
-      //get it back and set it here
-      setServer(100)
-      history.push('./chat')
+    if(server.name !== undefined){
+      axios.post('localhost:3030/servers', {
+        ...server
+      })
+      .then(function (response) {
+        //show a loading indicator here
+        console.log(response);
+        history.push('./chat')
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
     } else {
       const notification = ns.current;
       notification.addNotification({
@@ -39,7 +61,8 @@ function Server() {
     <div className="App">
       <h1>Rust Chat</h1>
       <form onSubmit={handleSubmit}>
-        <input placeholder="enter display name" type="text" value={name} onChange={handleChange}/>
+        <input placeholder="enter display name" type="text" value={name} onChange={handleNameChange}/>
+        <input placeholder="enter a server name" type="text" value={server.name} onChange={handleServerChange}/>
         <NotificationSystem ref={ns} />
         <button type="submit">CREATE SERVER</button>
       </form>

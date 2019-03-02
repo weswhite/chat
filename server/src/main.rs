@@ -13,11 +13,9 @@ use std::sync::{
     atomic::{AtomicUsize, Ordering},
     Arc, Mutex,
 };
-
 use futures::sync::mpsc;
 use futures::{Future, Stream};
 use warp::ws::{Message, WebSocket};
-
 use warp::{http::StatusCode, Filter};
 
 type Db = Arc<Mutex<Vec<Server>>>;
@@ -49,6 +47,9 @@ fn main() {
     let servers = warp::path("servers");
     let servers_index = servers.and(warp::path::end());
     let json_body = warp::body::content_length_limit(1024 * 16).and(warp::body::json());
+    let cors = warp::cors()
+        .allow_origin("localhost:3000")
+        .allow_methods(vec!["GET", "POST"]);
 
     let list = warp::get2()
         .and(servers_index)
@@ -59,7 +60,8 @@ fn main() {
         .and(servers_index)
         .and(json_body)
         .and(db.clone())
-        .and_then(create_server);
+        .and_then(create_server)
+        .with(cors);
 
     let chat = warp::path("chat")
         .and(warp::ws2())
@@ -119,15 +121,10 @@ fn user_message(my_id: usize, msg: Message, users: &Users) {
     } else {
         return;
     };
-
     //create the message
     //TODO: Make this into an object and not just a string
     let new_msg = format!("User#{}: {}", my_id, msg);
     eprintln!("new msg: {}", new_msg);
-    // New message from this user, send it to everyone else (except same uid)...
-    //
-    // We use `retain` instead of a for loop so that we can reap any user that
-    // appears to have disconnected.
     for (&uid, tx) in users.lock().unwrap().iter() {
         if my_id != uid {
             match tx.unbounded_send(Message::text(new_msg.clone())) {
@@ -142,8 +139,6 @@ fn user_message(my_id: usize, msg: Message, users: &Users) {
 
 fn user_disconnected(my_id: usize, users: &Users) {
     eprintln!("good bye user: {}", my_id);
-
-    // Stream closed up, so remove from the user list
     users.lock().unwrap().remove(&my_id);
 }
 
