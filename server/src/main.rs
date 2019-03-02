@@ -16,7 +16,7 @@ use std::sync::{
 use futures::sync::mpsc;
 use futures::{Future, Stream};
 use warp::ws::{Message, WebSocket};
-use warp::{http::StatusCode, Filter};
+use warp::{http::StatusCode, http::Method, Filter};
 
 type Db = Arc<Mutex<Vec<Server>>>;
 
@@ -48,8 +48,10 @@ fn main() {
     let servers_index = servers.and(warp::path::end());
     let json_body = warp::body::content_length_limit(1024 * 16).and(warp::body::json());
     let cors = warp::cors()
-        .allow_origin("localhost:3000")
-        .allow_methods(vec!["GET", "POST"]);
+        .allow_origin("http://localhost:3000")
+        .allow_methods(&[Method::GET, Method::POST])
+        .allow_headers(vec!["content-type"])
+        .max_age(30);;
 
     let list = warp::get2()
         .and(servers_index)
@@ -60,8 +62,8 @@ fn main() {
         .and(servers_index)
         .and(json_body)
         .and(db.clone())
-        .and_then(create_server)
-        .with(cors);
+        .and_then(create_server);
+        
 
     let chat = warp::path("chat")
         .and(warp::ws2())
@@ -70,8 +72,8 @@ fn main() {
             ws.on_upgrade(move |socket| user_connected(socket, users))
         });
 
-    let api = list.or(create).or(chat);
-    let routes = api.with(warp::log("servers"));
+    let routes = list.or(create).or(chat).with(cors);
+    
 
     warp::serve(routes).run(([127, 0, 0, 1], 3030));
 }

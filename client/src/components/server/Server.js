@@ -24,19 +24,22 @@ function Server() {
   }
 
   useEffect(() => {
-    axios.get('localhost:3030/servers', {})
-      .then(function (response) {
-        //show a loading indicator here
-        console.log(response);
-        setServer(response)
-      })
-      .catch(error => console.log(error))
+    fetch('http://localhost:3030/servers', {
+      method: 'GET',
+      mode: "cors",
+      headers : { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    }).then(response => response.json())
+      .then(data => setServers(data))
+      .catch(error => console.error(error))
   }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault()
     if(server.name !== undefined){
-      axios.post('localhost:3030/servers', {
+      axios.post('/servers', {
         ...server
       })
       .then(function (response) {
